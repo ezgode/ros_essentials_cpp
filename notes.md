@@ -626,26 +626,180 @@ twist = Twist()
 twist.linear.x = 1.0
 ```
 
-
-
-
-Assignment 2: Do-It-Yourself: Write your First ROS Program to Control t…
 Assignment 2: Do-It-Yourself: Write your First ROS Program to Control the Motion of a Robot
----------------------------------------
-
-section 69: [OLD-OPTIONAL] Write a ROS
-Publisher and Subscriber in C++
----------------------------------------
-
-section 70: [OLD-OPTIONAL] Write a ROS
-Publisher and Subscriber in Python
 ---------------------------------------
 
 ## Section 8: ROS Messages
 ## #################################### 
 
+section 71 : Create Custom ROS Messages: Overview
+---------------------------------------
+How to create custom messages?
+
+**EVERY NAME** MUST BE COMPOSED as `package_name/message_type` for example: `std_msgs/String`, `geometry_msgs/Twist`. 
+
+They might have several fields...
+```
+type1 field1
+type2 field2
+```
+The types can be custom types as well. 
+
+Let's try to create `IoTSensor` Message with fields: `id`, `name`, `temperature`, `humidity`. 
+
+To do that we will use the director `msg` located in our `<workspace>/src/<package_name>/msg`
+
+There we just need to create a file `mesage_name.msg`, that in our case might look like. 
+```
+int32 id
+string name
+float32 temperature
+float32 humidity
+```
+Before being able to use this message we need to modify the CMakeLists.txt. In the CMakeLists.txt we must include the `message_generation` within the packages. 
+
+```
+find_package(catkin REQUIRED COMPONENTS
+  ...
+  message_generation
+  ...
+)
+``` 
+and also...
+```
+catkin_package(
+	...
+	CATKIN_DEPENDS ... ... ... message_runtime
+	...
+)
+```
+and make sure that the generate message dependency is activated. That is that you have...
+```
+generate_messages(
+	DEPENDENCIES
+	std_msgs
+	acitionlib_msgs
+)
+```
+
+Then, we must link the file caontaining the message description. we do that by doing
+```
+add_message_files(
+	FILES
+	IoTSensor.msg
+)
+```
+
+Then we must change the `package.xml` and add
+```xml
+<build_depend>message_generation</build_depend>
+<exec_depend>message_runtime</exec_depend>
+```
+
+Finally, we `catkin_make`. Then you should see the message showing up when doing 
+```
+rosmsg show ros_essentials_cpp/IoTSensor
+```
+To know the types that might be available to us, we could check the info in http://wiki.ros.org/msg.
+
+
+section 72 : [Demo] Create a Custom ROS Message: Implementation
+---------------------------------------
+
+section 73 : [DEMO] IoTSensor Custom Message Publisher/Subscriber Ap…
+---------------------------------------
+
+To use the custom message we just need to do the following
+```python
+# imports
+from ros_essentials_cpp.msgs import IoISensor
+
+# Publishers...
+pub = rospy.Publisher('', IoTSensor, queue_size=10)
+
+# Then you create the message
+iot_sensor = IoTSensor()
+iot_sensor.id = 1
+iot_sensor.name = 'noname' 
+iot_sensor.temperature = 0.0
+iot_sensor.humidity = 1.0
+pub.publish(iot_sensor)
+```
+
+To create a subscriber, the same story...
+```python
+from ros_essentials_cpp.msg import IoTSensor
+rospy.Subscriber("iot_sensor_topic", IoTSensor, iot_sensor_callback)
+```
+
 ## Section 9: ROS Services
-## #################################### 
+## ####################################
+
+section 74 : What is a ROS Service
+---------------------------------------
+
+What is a ROS Service? 
+* ROS Server
+* ROS Client
+* Not like topic, service is one-time communication
+	* A client sends a request, then the server sends back a response. 
+	* BLOCKING!!!!!!
+
+When to use ROS Service?
+* Request the robot to perform a specific action
+* Example: find the path from point A to point B, spawn one robot in the simulator, ...
+
+We have here bi-directional communication. 
+
+75
+---------------------------------------
+Same tha with topics, we have available the commands...
+```bash
+rosservice list
+rosservice info
+rosservice call
+```
+Now the important thing it that we will have a message for the request, and another one for the repsonse. 
+The request message will need some arguments. 
+
+Now to see the info of the messages required by the service, we do 
+```bash
+rossrv show turtlesim/Spawn
+```
+In our case that shows...
+```
+float32 x
+float32 y
+float32 theta
+string name
+---
+string name
+```
+
+76
+---------------------------------------
+
+77
+---------------------------------------
+How to create them? 
+
+Using services....
+```python
+
+```
+
+
+78
+---------------------------------------
+79
+---------------------------------------
+81
+---------------------------------------
+82
+---------------------------------------
+
+
+
 
 ## Section 10: [NEW] Motion in ROS (updated with ROS Noetic)
 ## #################################### 
