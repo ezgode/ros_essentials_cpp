@@ -783,20 +783,196 @@ string name
 ---------------------------------------
 How to create them? 
 
-Using services....
-```python
+* Define the service message (servide file)
+* Create ROS Server node
+* Create ROS Client node
+* Execute the service
+* Consume the service by the client. 
 
+To create the custom message we need to create a file in the folder ./<worksapce>/src/<work_package>/srv where we will include the service definition. In the example we used...
+
+```python
+int64 a
+int64b
+---
+int64 sum
 ```
 
+Then we need to update the dependencies... I.E in the `CMakeLists.txt` file we have to add
+```
+<build_depend>message_generation</build_depend>
+<exec_depend>message_runtime</exec_depend>
+```
+
+Also, in the `find_ackage` line we gotta have
+```
+find_package(catkin REQUIRED COMPONENTS
+	roscpp
+	rospy
+	...
+	message_generation
+	...
+)
+```
+Also... to point to the file we gotta have
+```
+add_service_files(
+	FILES
+	AddTwoInts.srv
+)
+```
+Finally, we gotta catkin_make to compile the changes and have the service actually available. 
+Then we should see new related files in the <workspace>/devel/include/<package> directory (some header files basically). 
+
+after catkin_make you should be able to see the content of the service with 
+```
+rossrv show <package>/AddTwoInts
+```
 
 78
 ---------------------------------------
+
 79
 ---------------------------------------
+Python implementation for python
+
+```python
+from ros_essentials_cpp.srv import AddTwoInts
+from ros_essentials_cpp.srv import AddTwoIntsRequest
+from ros_essentials_cpp.srv import AddTwoIntsResponse
+
+import rospy
+
+def handle_add_two_ints(req):
+	res = req.a + req.b
+	return AddTwoIntsResponse(req.a + req.b)
+
+def add_two_ints_server():
+	ros.init_node('add_two_ints_server')
+	s = rospy.Service('add_two_ints', AddTwoInts, handle_add_two_ints)
+	rospy.spin()
+
+if __name__ = "__main__":
+	add_two_ints_server()
+```
+
+THE CLIENT
+```python
+from ros_essentials_cpp.srv import AddTwoInts
+from ros_essentials_cpp.srv import AddTwoIntsRequest
+from ros_essentials_cpp.srv import AddTwoIntsResponse
+
+import rospy
+
+
+def add_two_ints_client(x,y):
+	# This is waiting for the setvice to start!
+	rospy.wait_for_service('add_two_ints') 
+	try:
+		# Service client, or service proxy. 
+		# Here the name must be the same used in the server definition. 
+		add_two_ints = rospy.ServiceProxy('add_two_ints', AddTwoInts) 
+		resp1 = add_two_ints(x,y)
+		return resp1.sum
+	except rospy.ServiceException(e):
+		print('Srvice call failed: {:s}'.format(e))
+
+if __name__ = "__main__":
+	x = 1
+	y = 1
+	s = add_two_ints_client(x,y)
+```
+
 81
 ---------------------------------------
+
+In cpp!!
+
+SERVER
+```cpp
+#include "ros/ros.h"
+#include "ros_essentials_cpp/AddTwoInts.h"
+
+bool add(ros_essentials_cpp::AddTwoInts::Request &req, ros_essentials_cpp::AddTwoInts::Response &res)
+{
+	res.sum = req.a + req.b;
+	ROS_INFO("Request...");
+	return true;
+}
+
+int main(int argc, char **argv){
+	ros::init(argc, argv, "add_two_ints")
+	ros::NodeHandle n;
+	ros::ServiceServer service = n.advertiseService("add_two_ints", add);
+	ROS_INFO("Ready to add two ints");
+	ros::spin();
+	return 0
+}
+```
+
+CLIENT
+```cpp
+#include "ros/ros.h"
+#include "ros_essentials_cpp/AddTwoInts.h"
+#include <cstdlib>
+
+int main(int argc, char **argv)
+{
+  ros::init(argc, argv, "add_two_ints_client");
+  if (argc != 3)
+  {
+    ROS_INFO("usage: add_two_ints_client X Y");
+    return 1;
+  }
+
+  ros::NodeHandle n;
+  ros::ServiceClient client = n.serviceClient<ros_essentials_cpp::AddTwoInts>("add_two_ints");
+  ros_essentials_cpp::AddTwoInts srv;
+  srv.request.a = atoll(argv[1]);
+  srv.request.b = atoll(argv[2]);
+  if (client.call(srv))
+  {
+    ROS_INFO("Sum: %ld", (long int)srv.response.sum);
+  }
+  else
+  {
+    ROS_ERROR("Failed to call service add_two_ints");
+    return 1;
+  }
+
+  return 0
+```
+
+Now we need to add the instructions to compile the server and the client in the `CMakeLists`...
+
+```txt
+add_executable(add_two_ints_server src/topic01_basics/service/add_two_ints_server.cpp)
+target_link_libraries(add_two_ints_server ${catkin_LIBRARIES})
+add_dependencies(add_two_ints_server ros_essentials_cpp_gencpp)
+
+add_executable(add_two_ints_client src/topic01_basics/service/add_two_ints_client.cpp)
+target_link_libraries(add_two_ints_client ${catkin_LIBRARIES})
+add_dependencies(add_two_ints_client ros_essentials_cpp_gencpp)
+```
+
 82
 ---------------------------------------
+
+ASSIGNMENT
+---------------------------------------
+
+We first need to go to the workspace src folder, that is
+
+ cd ~/catkin_ws/src 
+
+and then create the package by doing
+
+catkin_create_pkg ros_service_assignment 
+
+```
+~/catkin_ws/src/ros_service_assignment/srv
+```
+
 
 
 
