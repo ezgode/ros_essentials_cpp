@@ -6,20 +6,20 @@ import math
 def scan_callback(scan_data):
     #Find minimum range
     min_value, min_index = min_range_index(scan_data.ranges)
-    print "\nthe minimum range value is: ", min_value
-    print "the minimum range index is: ", min_index
+    print("\nthe minimum range value is: ", min_value)
+    print("the minimum range index is: ", min_index)
 
     max_value, max_index = max_range_index(scan_data.ranges)
-    print "\nthe maximum range value is: ", max_value
-    print "the maximum range index is: ", max_index
+    print("\nthe maximum range value is: ", max_value)
+    print("the maximum range index is: ", max_index)
 
     average_value = average_range (scan_data.ranges)
-    print "\nthe average range value is: ", average_value
+    print("\nthe average range value is: ", average_value)
 
     average2 = average_between_indices(scan_data.ranges, 2, 7)
-    print "\nthe average between 2 indices is: ", average2
+    print("\nthe average between 2 indices is: ", average2)
 
-    print "the field of view: ", field_of_view(scan_data)
+    print("the field of view: ", field_of_view(scan_data))
 
 def field_of_view(scan_data):
     return (scan_data.angle_max-scan_data.angle_min)*180.0/3.14

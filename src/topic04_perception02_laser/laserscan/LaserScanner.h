@@ -1,8 +1,6 @@
 //include ros libraries
 #include <ros/ros.h>
 #include "sensor_msgs/LaserScan.h"
-
-
 #include "utility_lib.h"
 using std::string;
 

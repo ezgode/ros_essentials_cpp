@@ -2,11 +2,11 @@
 
 #import numpy: the data structure that will handle an image
 import numpy as np
-
+import time
 #import openCV
 import cv2
 
-image_name = "blackwhite"
+image_name = "flower"
 
 print ('read an image from file')
 img = cv2.imread("images/"+image_name+".jpg")
@@ -45,3 +45,10 @@ print (img[0] [0])
 print ('you can see a single channel in the image, for example only the first channel')
 print (img[:, :, 0])
 
+
+print ('create a window holder for the image')
+cv2.namedWindow("Image",cv2.WINDOW_NORMAL)
+
+print ('display the image')
+cv2.imshow("Image",img[:, :, 0])
+cv2.waitKey(0)

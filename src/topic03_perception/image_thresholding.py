@@ -32,13 +32,13 @@ def adaptive_thresholding(gray_image, threshol_value):
 
 
 def main():
-    #image_name = "images/shapes.png"
-    image_name = "images/tomato.jpg"
+    image_name = "images/shapes.png"
+    #image_name = "images/tomato.jpg"
     as_gray = True
-    threshol_value=115
+    threshol_value=231
     gray_image = read_image(image_name,as_gray)
-    basic_thresholding(gray_image, threshol_value)
-    #adaptive_thresholding(gray_image, threshol_value)
+    #basic_thresholding(gray_image, threshol_value)
+    adaptive_thresholding(gray_image, threshol_value)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 

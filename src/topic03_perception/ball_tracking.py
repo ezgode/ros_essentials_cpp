@@ -40,7 +40,7 @@ def draw_ball_contour(binary_image, rgb_image, contours):
         area = cv2.contourArea(c)
         perimeter= cv2.arcLength(c, True)
         ((x, y), radius) = cv2.minEnclosingCircle(c)
-        if (area>3000):
+        if (area>10):
             cv2.drawContours(rgb_image, [c], -1, (150,250,150), 1)
             cv2.drawContours(black_image, [c], -1, (150,250,150), 1)
             cx, cy = get_contour_center(c)
@@ -72,8 +72,8 @@ def detect_ball_in_a_frame(image_frame):
 
 
 def main():
-    video_capture = cv2.VideoCapture(0)
-    #video_capture = cv2.VideoCapture('video/tennis-ball-video.mp4')
+    #video_capture = cv2.VideoCapture(0)
+    video_capture = cv2.VideoCapture('video/tennis-ball-video.mp4')
 
     while(True):
         ret, frame = video_capture.read()

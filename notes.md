@@ -973,12 +973,69 @@ catkin_create_pkg ros_service_assignment
 ~/catkin_ws/src/ros_service_assignment/srv
 ```
 
-
-
-
-
 ## Section 10: [NEW] Motion in ROS (updated with ROS Noetic)
 ## #################################### 
+
+83
+---------------------------------------
+84
+---------------------------------------
+```
+/turtl1/cmd_vel
+geometry_msgs/Twist
+/turtl1/Pose
+```
+85
+---------------------------------------
+
+```
+import rospy
+from geometry_msgs.msg import Twist
+from turtlesim.msg import Pose
+
+#include "ros/ros.h" 
+#include "geometry_msgs/Twist.h"
+#include "turtlesim/Pose.h"
+```
+86
+---------------------------------------
+87
+---------------------------------------
+88
+---------------------------------------
+89
+---------------------------------------
+90
+---------------------------------------
+90
+---------------------------------------
+91
+---------------------------------------
+92
+---------------------------------------
+93
+---------------------------------------
+94
+---------------------------------------
+95
+---------------------------------------
+96
+---------------------------------------
+97
+---------------------------------------
+98
+---------------------------------------
+Running several nodes at once...
+Using laun files
+```xml
+<launch>
+	<node name="turtlesim" pkg="turtlesim" type="turtlesim_node"/>
+	<node name="clean_node" pkg="ros_essentials_cpp" type="turtlesim_cleaning.py" output="screen"/>
+</launch>
+```
+
+and then we call
+`roslaunch ros_essentials_cpp <filename>.laungh`
 
 ## Section 11: Appendix: Motion in ROS (old videos - but still applicable)
 ## #################################### 
@@ -986,11 +1043,212 @@ catkin_create_pkg ros_service_assignment
 ## Section 12: ROS Tools and Utilities
 ## #################################### 
 
+108
+---------------------------------------
+Allow a work station to control a robot over the network.
+He uses two virtual machines.
+
+First, he modifies the `.bashrc` files in the workstation and on the robot. 
+
+### ROBOT
+
+find the robot's ip address by doing :
+```
+ifconfig 
+```
+
+```bashrc
+export ROS_MASTER_URI=http://localhost:11311
+export ROS_HOSTNAME=<robot ip address>
+export ROS_IP = <robot ip address> 
+
+// display then
+echo "ROS_HOSTNAME: "$ROS_HOSTNAME
+echo "ROS_IP: "$ROS_IP
+echo "ROS_MASTER_URI: "$ROS_MASTER_URI
+```
+
+Open new terminal, and we will se the echoed messanges.
+
+
+### WORKSTATION
+Same thing with the workstation
+```bashrc
+export ROS_IP = <workstation ip address> 
+export ROS_HOSTNAME= <workstation ip address> 
+export ROS_MASTER_URI=http://<robot ip address>:11311
+```
+
+Essentially this allows the workstation to communicate with the topics that are available in the robot. So in practice, we can control remotely the robot.
+
+109
+---------------------------------------
+Launch files? 
+* A launch file is a XML document, which specifies
+ 	- wich nodes to execute
+ 	- their parameters
+ 	- what other launch files to include
+
+* roslaunch is a program that easily launches multiple ROS nodes
+* Laucn file has a .launch extension
+
+We have a tag to include a launch file in another launch file
+```xml
+<launch>
+	<include file="$(find ros_essentials_cpp)/src/topic02_motion/launch/turtlesim_teleop.launch"/>
+	<node name="turtlesim" pkg="turtlesim" type="turtlesim_node"/>
+	<node name="clean_node" pkg="ros_essentials_cpp" type="turtlesim_cleaning.py" output="screen"/>
+</launch>
+```
+
+we can use parameters defined within these launch files. 
+
+```xml
+<param name="x_goal" value="3.0"/>
+<param name="y_goal" value="1.0"/>
+<node name="clean_node" pkg="ros_essentials_cpp" type="turtlesim_cleaning.py" output="screen"/>
+```
+in `turtlesim_cleaning.py` we would use...
+
+```python
+x_goal = rospy.get_param("x_goal")
+y_goal = rospy.get_param("y_goal")
+```
+
+
+110
+---------------------------------------
+
 ## Section 13: Getting Started with Turtlebot3
 ## #################################### 
 
+111
+---------------------------------------
+https://emanual.robotis.com/docs/en/platform/turtlebot3/overview
+
 ## Section 14: Perception I: Computer Vision in ROS with OpenCV
 ## #################################### 
+
+openCV
+* open source computer vision library
+* BSD License
+* Free for both academic and comercial use
+* C++/Python/Java
+* Windows, macos, Linux, iOS, Android
+* Strong focus on real-time (written in C++ and optimized).
+
+Some operation? 
+* 2d image processing
+* image input/output
+* video input/outptu
+* Camera Calibration
+* video analysis (motion extraction, feature tracking, foreground extraction,)
+* Object detection
+* Machine learning, deep neural networks
+* GPU-Accelerated computer vision
+* and much more
+
+Some functionalities
+* image segmentation
+* image thresholding
+* Object detection and recognition
+* Drawing
+* Edge Detection
+* video/image input output
+
+
+123
+---------------------------------------
+CvBridge: Bridging Open CV and Ros
+
+Images have to be received through topics... and turns out that the image format supported by open cv is not the same than the one supported by ROS. 
+Or rather the opposive, transform images in the ROS format, to a format that open CV understand. 
+
+`rosrun usb_cam usb_cam_node _pixel_format:=yuyv`
+
+135
+---------------------------------------
+Tu use a RGBD camera, or some periferials, we need to run the drivers, which will be posting info in a topic? 
+
+start openni package
+
+```
+sudo apt-get install ros-kinetic-openni2--
+
+roslaunch opanni2 launch opanni2 ... 
+
+rosrun deth_image_to_laser_scan deth_image_to_laserscan image:=camera/depth/image_raw
+
+```
+
+```xml
+<remap from ="image" to="/camera/depth/image_raw"/>
+```
+
+RVIZ: Ros Visualization, to visualize topics....
+
+rosrun rviz rviz
+>> global_options>fixed_frame>camera_link
+>> fixed >> ok 
+>> add >> laser scan
+>> laserscan : topic
+
+136
+---------------------------------------
+
+```cpp
+sudo apt-get install ros-kinetic-urg-node
+rosrun urg_node urg_node
+
+rostopic list
+// and scan topic if the sensor is running
+rostopic echo /scan
+rosrun rviz rviz
+rosrun tf static_transform_publisher 0.0 0.0 0.0 0.0 0.0 0.0 1.0 map laser 10
+```
+
+
+Bag File
+---------------------------------------
+To save///
+```
+mkdir bagfiles
+// -a is for everything
+rosbag record -a
+```
+crtl+c to stop recording
+
+```
+rosbag info <name>
+rosbag play <name>
+
+```
+
+Subscribing to the laser scanner
+---------------------------------------
+* start the drivers
+* make sure that /scan topic is available
+* write a node that subscribes to the /scan topic
+* write a callback function that receive /scan messages and process them. 
+
+As always... when working with `cpp` we need to include the instructions in the CMakeLists. Specifically, we need to
+
+```
+# Adding the library he defined
+add_library(utility_lib src/topic04_perception02_laser/laserscan/utility_lib.cpp)
+
+#laser scan
+add_library(laserscan_lib src/topic04_perception02_laser/laserscan/LaserScanner.cpp)
+target_link_libraries(laserscan_lib ${catkin_LIBRARIES})
+add_dependencies(laserscan_lib ${catkin_EXPORTED_TARGETS})
+target_link_libraries(laserscan_lib utility_lib)
+
+# executable
+add_executable(scan_subscriber_cpp src/topic04_perception02_laser/scan_subscriber.cpp)
+target_link_libraries(scan_subscriber_cpp ${catkin_LIBRAIES})
+target_link_libraries(scan_subscriber_cpp laserscan_lib)
+```
+
 
 ## Section 15: Perception II: Laser Range Finders (Laser Scanner)
 ## #################################### 
@@ -998,5 +1256,692 @@ catkin_create_pkg ros_service_assignment
 ## Section 16: rosserial: Connecting new Hardware (Arduino) with ROS
 ## #################################### 
 
-## Section 17: Bonus
+What is rosserial? 
+
+Sometimes we need to develop our own drivers.
+However, ros provides rosserial, a protocol to communicate with microcontrollers that are controlling other sensors...
+
+allows new electronic hardware to directly talk to ROS system. 
+no need for customer driver and communication protocol. 
+rosserial is a protocol for wrapping standard ros serialized messages and multiplexing multiple topics services over a character device such a serial port or network socket. 
+
+different client libraries were devekoped to get ROS up and running on various systems. 
+* rosserial_client
+* rosserial_arduino
+* rosserial_ambeddedlinux
+* rosserial_windows
+* rosserial_mbed
+* rosserial_tivac
+* rosserial_...
+
+The ones we will use 
+* rosserial_python
+* rosserial_server (c++)
+
+* rosserial_arduino
+
+The objective is making microcontrollers like arduino able to public messages directly in the ros topics? 
+
+```arduino
+void setup(){
+	Serial.begin(9600);	
+}
+void loop(){
+	...
+	Serial.print(inches)
+	Serial.println();
+	delay(100)
+}
+```
+
+That already makes the arduino sending info to the computer via the usb port. 
+
+We gotta go to http://wiki.ros.org/rosserial for installation files and more tutorials. 
+
+install rosserial arduino
+Install libraries 
+
+```
+cd arduino-<version>/libraries
+rosrun rosserial_arduino make_libraries.py .
+```
+
+That generates the library needed to make arduino able to publish in topics? 
+We already have ros integrated in arduino. 
+
+Now in arduino you have the examples of ros. 
+
+```Arduino
+#include <ros.h>
+#include <std_msgs/String.h>
+```
+The server application in the workstation
+
+```
+rosrun rosserial_python serial_node.py /dev/tty<portname>
+```
+
+and now we should be able to see the topic the arduino created. 
+
+Something very similar is done to make the arduino subscribe to the topics. 
+Also very nice example by default... so nothing reeeeallyyyy new here. 
+
+
+# ROS for beginnerrs II: Loclization, Navigation and SLAM
 ## #################################### 
+
+`/odom`
+`/ancl_pose` : map frame, refers to the global position on the map. 
+
+Orientation is represented by quaternions and typically have components (x,y,z,w).
+THat info is not necessarily readable right away. 
+``` 
+`) What is the purpose of frames in the context of a robot navigation? (refer to the lecture 9 about frames)
+
+They allow to represent the location and orientation of the robot w.r.t. some reference points/location. 
+
+2) In the lecture 10 (location), what is the difference between amcl_pose locatio and odom location?
+
+The reference frame they use. The amcl_pose uses the global frame, while the odom location uses the odom frame. 
+
+3) In lecture 11, we have talked about robot orientation. What is the representation used to express a rotation angle in ROS?
+
+Quaternions. 
+
+4) Is it easy for a human being to understand the meaning of this rotation representation?
+
+No. 
+
+5) In lecture 12, we presented a simple example of map-based robot navigation.
+Describe this process in a few words. 
+
+- We se the navigation objective, i.e. the location the robot is moving towards. 
+- Then we need a global planner which, using the information about the map, comes up with a collision-free way of reaching the objective. 
+- The we have a local planner that aims at following the computed global path while avoiding collisions with the surroungind moving and static obstacles.
+```
+## Section 1: What is this course about?
+## #################################### 
+
+Frames. How to represent the possition of the robot? 
+
+
+Combination of position and orientation is the Pose. 
+Pose: position and orientation.
+
+What is the location of this robot? 
+We need to have a reference,
+
+F{W} = (X^W, Y^W)
+
+How to determine the pose of the robot in different reference frames? 
+We need to transform. 
+
+Location of an object is dependent on the frame. 
+
+Typically the robot know its global location, and detect things w.r.t. the robot's coordinate frame. 
+
+Transformation types : translation and rotation. 
+
+
+
+
+2D translation
+
+```latex
+\vec{p}_w1 = \vec{p}_w2 + \vec{W1,W2}
+``` 
+
+W1 -> flat
+W2 -> rotated a theta angle
+
+```
+x_w1 = x_w2 cos(theta) - y_w2 sin(theta)
+y_w1 = x_w2 sin(theta) + y_w2 cos(theta)
+
+p_w1 = [[cos(theta), -sin(theta)],[sin(theta), cos(theta)]] p_w2
+p_w1 = R_w1^w2 p_w2
+```
+
+
+The genera transformation then ends up being...
+
+
+```
+p_w1 = R_w1^w2 p_w2 + \vec{W1,W2}
+or
+[[x_w1],[y_w1],[1]] = 
+	[[cos(theta), -sin(theta), xt],[sin(theta), cos(theta), yt],[0,0,1]] [[x_w2],[y_w2],[1]]
+```
+
+[[x_w2],[y_w2],[1]] is called the homogeneous coordinates and they allow to represent rotation and translation.
+
+Counter clock wise rotation angle!!
+
+We always use 3D coordinate systems. 
+So what the transformation looks like? 
+
+Consider two frames: W1 (well aligned) and a W2 translated and rotated w.r.t. w1. 
+Frames are typically assigned in such a way that `x`  is the longitudinal axis of the robot. 
+In those circumstances, the rotation angles are
+roll (bank): around x
+pitch (attitude): around y
+yaw (heading): around z
+
+For every rotation we have the following rotation matrices. 
+
+Rx(theta) = [[1, 0, 		  0],
+	  [0, cos(theta), -sin(theta)],
+	  [0, sin(theta), cos(theta)]]
+
+Ry(theta) = [[cos(theta),  0, sin(theta)],
+      [0, 		    1, 0], 
+      [-sin(theta), 0, cos(theta)]]
+
+Rz(theta) = [[cos(theta), -sin(theta), 0],
+      [sin(theta), cos(theta),  0],
+      [0,  		   0,  			1]]
+
+
+The general rotation matrix bill then be
+R = Rz(alpha)Ry(beta)Rx(gamma)
+
+THen the general transormation matrix end up bein...
+
+[ [w1R_w2], [t]
+  [0], [1] ] 
+
+where t is the translation vector from one frame to the other. 
+And we nee to use the homogeneous coordinates to describe the position,. 
+
+
+
+## Section 2
+## #################################### 
+
+## Section 3
+## #################################### 
+
+## Section 4
+## #################################### 
+
+## Section 5
+## #################################### 
+
+**How orientation is represented in 3D space?**
+- Three angle representation: Euler rotation vs cardan rotation
+- rotation about arbitrary vector
+- quaternions
+
+EULER ROTATION SEQUENCE
+Involves repetition, but not successive, or rotations about one particular axis. 
+
+CARDAN ROTATION SEQUENCE:
+characterized by rotations about all three axes. 
+
+Euler theory: Any two independent orthonormal coordinate frames can be related by a sequence of rotations (not more than three) about coordinate axes, where no two successive rotations may be about the same axis. 
+
+ARBITRARY VECTOR ROTATION
+In 3D space, orientation can be expressed as a rotation about some axis that runs through a fixed point on the rigid body. This means, for any rotation, there exists some axis at certain angle around which the rotation occurs. 
+
+Rodrigues Formula: 
+`R = I cos(theta) + sin(theta)[u]_x + (1-cos(\theta)) u \times u`
+
+**QUATERNIONS**
+Represented by 4 numers. 
+
+q = s < v1 | v2 | v3 > 
+
+< v1 | v2 | v3 >  : represents a vector
+q := scalar. 
+
+The actual quaternion is 
+
+q = s + v1 i + v2 j + v3 k
+such that
+`i**2 + j**2 + k**2 = -1` 
+
+other notation styles might call this
+
+q = q0 + qx i + qy j + qz k
+
+In RES, the notation is (x,y,z,w)
+
+The rotation matrix corresponding to a clockwise/left-handed rotation by the unit quaternion axis...
+```
+R = [
+[q0**2 + q1**2 - q2**2 - q3**2, 2(q1q2-q0q3), 2(q0q2+q1q3)],
+[2(q1q2+q0q3), q0**2-q1**2+q2**2-q3**2, 2(q2q3-q0q1)],
+[2(q1q3-q0q2), 2(q0q1+q2q3), q0**2-q1**2-q2**2+q3**2]
+]
+```
+https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/hinde.h
+
+Also obtain the quaternion from the Euler angles...
+Also the Euler angles from the quaternion...
+
+Why quaternion? 
+Cuz, when used to linearize the model of a quadrotor, they were shown to allow better performance than the Euler angles. 
+
+- Compared to Euler angles they are simples to compose and avoid problems of gimbal lock
+- Compared to rotation matrices they are more compact, more numerically stable, and more efficient. 
+- Quaternions have applications in computer graphics computer vision, robotics, navigation, molecular dynamics, flight dynamics, orbital mechanics of satellites, and crystallographic texture analysis. 
+
+
+## Section 6 : the TF package: Frames, Transformations and Localization in ROS. 
+## #################################### 
+
+WHAT IS TF? 
+- TF stands for transofmration library in ROS. 
+- It performs computation for transformations between frames.
+- It allows to find the pose of any object in any frame using transformations. 
+- A robot is a collection of frames attached to its different joints. 
+
+color code to represent frames? 
+x -> red
+y -> green
+z-> blue
+
+A frame is defined in every joint and component of the robot. 
+
+**URDF: Language for the Description of Frames and Transformation in a Robot Model**
+
+In ROS every robot is defined using the Unified Robot Description Format (URDF), which is essentially a xml file showing the properties. 
+
+https://wiki.ros.org/urdf/Tutorials 
+
+Example of a block within the xml filE? 
+```
+<joint name="base_joint" type="fized">
+	<parent link="base_footprint"/>
+	<child link="base_link"/>
+	<origin xyz="0.0 0.0 0.010" rpy="0 0 0"/>
+</joint>
+```
+Relative position between joints is represented throughout a translation vector `xyz` and a rotation matrix `rpy`. Rotation : roll pitch yaw. 
+
+
+**WHY TF IS IMPORTANT?** 
+
+Essentially, typically if we want to interact with the world, we need to use coordinates obtained through a camera (at a specific location) and make some other part of the robot interact with the detected object. 
+We need to perform transformations between the different frames. 
+
+- performs transformation easily
+- The user does not need to worry about frames
+- Provides built-in functions to publish and listen to frames in ROS. 
+
+
+**OVERVIEW OF TF PACKAGE UTILITIES**
+The TF package has several ROS nodes that provide utilities to manipulate frames and transformations in ROS. 
+
+- *view_framse*: visualizes the full tree of coordinate transforms. 
+- *tf_monitor*: monitors transforms between frames. 
+- *tf_echo*: prints specified transform to screen
+- *roswtf*: with the tfwtf plugin, helps yo utrack down problems with tf. 
+- *static_transform_publisher* is a command line tool for sendind static transforms. 
+
+```
+rosrun tf view_frames
+rosrun tf tf_monitor
+rosrun tf tf_echo odom base_footprint
+rosrun tf view_frames
+evince frames.pdf
+alias tf='cd /var/tmp && rosrun tf view_frames && evince frames.pdf &'
+```
+
+**CONVERT ORIENTATION BETWEEN QUATERNION AND ROOL-PITCH-YAW USING TF**
+
+`tf_rotation_convertions.py`
+
+
+```
+quaternion = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
+rpy = tf.transformations.euler_from_quaternion(quaternion)
+rpy = tf.transformations.euler_from_quaternion(q)
+```
+
+How to launch the nodes for navigation? 
+- Start tutlebot3 waffle
+- list all topics
+- check info od /odom topic and amcl_pose
+- understnad how position and orientation are presented
+- write script that print the x,y coordinate and yaw angle of the Turtle3 robot. 
+
+The message
+`rosmsg show nav_msgs/Odometry` 
+contains info regarding the pose (with orientation in quaternions) and the velocity. 
+
+Then, the `rosmsg show geometry_msgs/PoseWithCovarianceStamped` 
+and the `rosmsg show geometry_msgs/TwistWithCovarianceStamped` 
+message have the post and twist with the covariance? 
+
+```
+roslaunch turtlebot3_gazebo turtlebot3_house.launch 
+roslaunch turtlebot3_navigation turtlebot3_navigation.launch map_file:=/home/ezequiel/catkin_ws/src/ros_course_part2/src/topic03_map_navigation/tb3map/tb3_house_map.yaml
+rostopic list
+```
+
+Note the topics
+
+```
+/odom
+/acml_pose
+```
+
+**THE TF PACKAGE COMMAND LINE AND UTILITIES**
+```
+rostopic list
+rosrun tf view_frames
+rostopic echo tf
+rostopic info tf
+rosmsg show tf2_msgs/TFMessage
+```
+
+some frames 
+`base_link` 
+`camera_link` 
+
+
+tf was deprecated, so now we should be using tf2. 
+`sudo apt-get install ros-noetic-tf2-tools` 
+`rosrun tf2_tools view_frames.py`  
+
+this should be run instead of `rosrun tf view_frames`. 
+
+Now that we have a map, we also have the frame `amcl` to which you can listen to by doing `rostopic echo amcl_pose` 
+
+**Other tools**
+
+`rosrun tf tf_echo map odom` 
+gives the transformation from one frame to the other...
+
+`rosrun tf tf_echo odom map`
+
+ with this tf command, we can calculate the transofmration between any pair of frames even if they are not parent-child relationship. 
+
+`rosrun tf tf_echo odom camera_rgb_frame`
+we can also set the frequency of the verbose. You esntt 1 Hz? soo...
+`rosrun tf tf_echo odom camera_rgb_frame 1`
+
+We can also monitor using `tf_monitor`
+
+```
+rosrun tf t2f_monitor odom base_footprint
+rosrun tf tf_monitor
+```
+
+**PUBLISH TRANSFORMATION BETWEEN TWO FRAMES**
+
+```
+roscore
+// ther eis no transformation
+rostopic list
+// publish a static transformation betwee two frames
+// the params are [translation] [rotation] parent child broadcast frequency
+rosrun tf static_transform_publisher 1 2 3 0.1 0.2 0.3 frame_a frame_b 10
+// Now in rostopic list we should have the new tf topic. 
+rostopic list
+// and we can print again the transform by doing
+rosrun tf view_frames
+// and to see the broadcast
+rosrun tf tf_echo frame_a frame_b
+```
+
+We can also do this using a launcher file! Specificalle...
+```xml
+<launch>
+	<node pkg="tf" type="static_transform_publisher" name="frame_a_to_frame_b" args="1 2 3 0.1 0.2 0.3 frame_a frame_b 10"/>
+</launch>
+```
+
+sace that in a `<path>/file.launch` and launch it with `roslaunch <path>/file.launch` 
+For instance there is an example already in the package, that goes like
+
+```
+roslaunch ros_course_part2 static_transform_publisher.launch
+```
+
+**BROADCASTING TRANSFORMATION FROM NODES**
+
+## Section 7 MAP BASED NAVIGATION OVERVIEW
+## #################################### 
+
+**MOBILE ROBOT NAVIGATION OVERVIEW**
+==================================================
+**MAP-BASED NAVIGATION OVERVIEW**
+==================================================
+
+* Localization
+* Mapping
+* Motion planning or path planning. 
+
+Ros has predefined packages to deal with navigation stack
+- move_base: map-based navigation
+- gmapping: creates maps using laser scan data
+- amcl: localization using map
+
+**SLAM DMONSTRATION AND SICUSSION**
+==================================================
+
+```
+export TURTLEBOT3_MODEL=waffle
+roslaunch turtlebot3_gazebo turtlebot3_house.launch
+export TURTLEBOT3_MODEL=waffle_pi
+roslaunch turtlebot3_slam turtlebot3_slam.launch slam_methods:=gmapping
+export TURTLEBOT3_MODEL=waffle_pi
+roslaunch turtlebot3_teleop turtlebot3_teleop_key.launch
+rosrun map_server map_saver -f ~/map
+```
+
+There are several SLAM approaches in ROS: 
+* gmapping : which contains a ROS wrapper for OpenSlam's Gmapping.
+* cartographer : which is a system developed by Google that provides real-time simultaneous localization and mapping (SLAM) in 2D and 3D across multiple platforms and sensor configurations. 
+* hector_slam : which is another SLAM approach that can be used without odometry.
+
+
+The resolution is typicalle m/pixel
+negate: negate the image. 
+
+
+**UNDERSTAND THE STRUCTURE OF MAPS IN ROS**
+==================================================
+
+When we want to save the map, we need to save the map into a file. 
+We use another node for that 
+
+```
+rosrun map_server map_saver -f ~/tb3_house_map
+```
+map_server is a package responsible for publishing and manipulating maps. 
+
+This generates two files. 
+an image file (`.pgm`) and a `yaml` file. 
+
+The image file is just the image of the map. 
+the `yaml` file contains metadata as 
+```
+* path: <file_path>
+* resolution: 0.05 (m/pixel)
+* origin: [x,y,theta]
+* negate: 0
+* occupied threshold : 0.65 //threshold above which the cells are considered occupied. 
+* free threshold : 0.196 //threshold below which the cells are considered occupied.
+```
+
+**UNDERSTAND ROS NODES AND LAUNCH FILE USED FOR SLAM**
+==================================================
+
+THe launcher that starts the slam node is...
+```
+roslaunch turtlebot3_slam turtlebot3_slam.launch slam_methods:=gmapping
+```
+So the launcher is `turtlebot3_slam.launch`.
+
+We can take a look at the file. To do that we need to find it.
+We could do 
+`
+roscd turtlebot3_slam/
+cd launch/
+sublime ./turtlebot3_slam.launch
+`
+
+The file first sets some parameters....
+* the robot model. which is taken from the environment variable.
+* The slam method. 
+* open_rviz arg to true to open it. 
+
+There is another launch file associated to `turtlebot3_gmapping.launch` which contains the parameters of the `gmapping` slam algorithm. 
+
+First it sets arguments related to the frames. 
+And then, the `gmapping` node is run with all the parameters 
+http://wiki.ros.org/gmapping to know more about all the params. 
+
+some of then. 
+Three important frames
+* base_frame
+* odom_frame
+* map_frame
+...
+* update_rate
+* delta: 0.05 // esolution of the map. 
+// map limits
+* xmin
+* xmax
+* ymin
+* ymax
+
+Now that we have the map, we need to use it for robot navigation. 
+
+
+**MAP-BASED NAVIGATION DEMO**
+==================================================
+
+Command
+
+`
+roslaunch turtlebot3_gazebo turtlebot3_house.launch
+`
+
+For navigation... we need to load the map of the robot and providing it as input to the navigation stack. 
+
+`
+export TURTLEBOT3_MODEL=waffle_pi
+roslaunch turtlebot3_navigation turtlebot3_navigation.launch map_file:=/home/ros/tb3_house_map.yaml
+`
+
+we need set manually the initial pose. 
+2D Nav Goal sends the the targeted location. 
+Then the stack will calculate a global path. Then a local path planner will try to follow the global path. When the (x,y) position is reached, the robot will rotate. 
+
+* we need to manually set the initial location fo the robot in the map
+* we send the goal pose
+* the navigation stack then
+	* global plan the path : static obstacle-free path
+	* local path planner: execute the planned trajectory and avoids dynamic obstacle. 
+
+
+**THE RECOVERY BEHAVIOR**
+==================================================
+
+The robot sometimes performs some bakwards motions to try to get a different initial pose when going through narrow corridors. 
+Also, observe that during navigation, we can also perform the so-called clearing process, which basically updates the map info using the sensors, in case there is something initially mapped that dissapeared. 
+
+
+**UNDERSTAND THE NAVIGATION LAUNCH FILE**
+==================================================
+
+Taking a look at the launch file again. 
+
+`
+roscd turtlebot3_navigation/
+cd launch
+sublime turtlebot3_navigation.launch
+`
+
+As before this guy, loads the turtlebot3_remote.launch package, that starts the nodes publishing the robot model, and the state broadcaster. 
+Then, the map_server node is started with the map file. 
+
+Then the amcl.launch file is launched, which is in charge of estimated the location of the robot in the map using the adaptive montecarlo localization, which uses particle filters for positioning. 
+This uses the odometry info and the map. 
+Then the navigation stack node is launched. The global and local. 
+Finally, the rviz visualization node is launched. 
+
+
+**WRITING A ROS NODE FOR ROBOT NAVIGATION**
+==================================================
+
+
+
+**UNDERSTND THE RECOVERY BEHAVIORS OF THE NAVIGATION STACK**
+==================================================
+
+**ROBOT SETUP TO SUPORT THE ROS NAVIGATION STACK**
+==================================================
+
+We need to set up the robot properly to use the ROS navigation stack. 
+It considers the robot is configure in a certain way. 
+
+* sensors transforms
+* sensor sources
+* odometry
+* base controller
+
+Requirements: 
+- ROS
+- a robot must publish tf transform to describe the relation between coordinate frames. 
+	- base_link frame attached to the body
+	- base_laser frame attached to the laser scan. 
+	- We can define those transforms using the URDF xml file. 
+	- Or, writing a node that publishes the static transformation in the appropriate topic. 
+- Sensor information: 
+	- sensor_msgs/LaserScan
+	- sensor_msgs/PointCloud
+- Odometry information
+	- Requires the robot publish its pose and velocity. 
+		- nav_msgs/odometry
+	- ros.org/navigation/Tutorials/RobotSetup/Odom
+- Base Controller 
+	- using the geometry_msgs/Test
+	- on the topic cmd_vel
+- Mapping
+	- map_server. 
+	- Navigation stack can work with or without map. 
+
+
+
+## Section 8
+## #################################### 
+
+**63 NAVIGATION STACK TUNING PROBLEM STATEMENT**
+==================================================
+**64 TUNING MAX/MIN VELOCITIES AND ACCELERATIONS OF THE ROBOT**
+==================================================
+**65 GLOBAL PLANNER PARAMETER TUNING**
+==================================================
+**66 LOCAL PATH PLANNER OVERVIEW**
+==================================================
+**67 THE DYNAMIC WINDOW APPROACH (dwa) ALGORITHM**
+==================================================
+**68 TUNING THE SIMULATION TIME OF THE DWA ALGORITHM**
+==================================================
+**69 DWA TRAJECTORY SCORING**
+==================================================
+**70 TUNING THE DWA TRAJECTORY SCORES**
+==================================================
+
+## Section 9
+## #################################### 
+
+
+**71 Overview** 
+==================================================
+**72 OVERVIEW OF THE FOLLOWER APPLICATION** 
+==================================================
+**73 CREATE A TF BROADCASTER FOR THE FRAMES ATTACHED TO THE ROBOT** 
+==================================================
+**74 TF LISTENER FOR THE FOLLOWER** 
+==================================================
+**75 BUG ALGORITHMS: OVERVIEW** 
+==================================================
+**76 BUG0,, BUG1, AND BUG2 APPROACHES** 
+==================================================
+

@@ -59,6 +59,8 @@ include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
+  src/topic04_perception02_laser
+  src/topic04_perception02_laser/laserscan
 )
 
 
@@ -111,3 +113,18 @@ target_link_libraries(open_copy_cpp ${OpenCV_LIBRARIES})
 add_executable(image_pub_sub_cpp src/topic03_perception/cpp/image_pub_sub.cpp)
 target_link_libraries(image_pub_sub_cpp ${catkin_LIBRARIES})
 target_link_libraries(image_pub_sub_cpp ${OpenCV_LIBRARIES})
+
+
+
+###########
+## Build ##
+###########
+add_executable(zk_turtlebot3_move_until_obs_cpp src/my_assignments/turtlebot3/zk_turtlebot3_move_until_obs.cpp)
+target_link_libraries(zk_turtlebot3_move_until_obs_cpp ${catkin_LIBRARIES})
+target_link_libraries(zk_turtlebot3_move_until_obs_cpp laserscan_lib)
+target_link_libraries(zk_turtlebot3_move_until_obs_cpp utility_lib)
+
+add_executable(zk_turtlebot3_PID_cpp src/my_assignments/turtlebot3/zk_turtlebot3_move_PID.cpp)
+target_link_libraries(zk_turtlebot3_PID_cpp ${catkin_LIBRARIES})
+target_link_libraries(zk_turtlebot3_PID_cpp laserscan_lib)
+target_link_libraries(zk_turtlebot3_PID_cpp utility_lib)

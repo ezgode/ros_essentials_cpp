@@ -25,7 +25,7 @@ cv2.moveWindow("Blue Channel",0,height)
 cv2.imshow("Red Channel",red)
 cv2.moveWindow("Red Channel",0,height)
 
-cv2.imshow("Greeen Channel",green)
+cv2.imshow("Green Channel",green)
 cv2.moveWindow("Green Channel",0,height)
 
 
@@ -48,4 +48,5 @@ cv2.imshow("Gray Image ",gray_image)
 print (gray_image)
 
 cv2.waitKey(0)
+input('')
 cv2.destroyAllWindows()

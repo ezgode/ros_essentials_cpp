@@ -1,6 +1,7 @@
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
 #include "laserscan/LaserScanner.h"
+#include "utility_lib.h"
 
 using namespace std;
 

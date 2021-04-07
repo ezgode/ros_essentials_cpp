@@ -2,9 +2,9 @@
 
 import numpy as np
 import cv2
-import imutils
+#import imutils
 
-image = cv2.imread("images/tennisball05.jpg")
+image = cv2.imread("images/tennisball03.jpg")
 cv2.imshow("Original",image)
 
 #convert the image into the HSV color space
@@ -19,11 +19,6 @@ yellowUpper = (50, 255, 255)
 mask = cv2.inRange(hsv, yellowLower, yellowUpper)
 
 cv2.imshow("mask image", mask)
-
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
-
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
